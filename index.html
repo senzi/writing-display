@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>迷家</title>
+    <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5/dist/hanzi-writer.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-color: #f5f5f5;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+
+        .container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .characters-container {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .character {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .message {
+            font-size: 1.1rem;
+            color: #333;
+            margin-top: 0.8rem;
+            height: 1.5rem;
+            text-align: center;
+        }
+
+        footer {
+            text-align: center;
+            padding: 1rem;
+            background-color: #fff;
+            border-top: 1px solid #eee;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        footer a {
+            color: #333;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 640px) {
+            .characters-container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="characters-container">
+            <div id="mi" class="character"></div>
+            <div id="jia" class="character"></div>
+        </div>
+        <div id="message" class="message"></div>
+    </div>
+    <footer>
+        <p>
+            Repository: <a href="https://github.com/senzi/writing-display" target="_blank">writing-display</a> | 
+            License: MIT | 
+            Thanks to <a href="https://github.com/chanind/hanzi-writer" target="_blank">hanzi-writer</a>
+        </p>
+    </footer>
+
+    <script>
+        function calculateCharSize() {
+            const isMobile = window.innerWidth <= 640;
+            const minPadding = isMobile ? 20 : 32; // 最小边距
+            const gap = isMobile ? 16 : 32; // 字符间距
+            
+            if (isMobile) {
+                // 移动端：屏幕宽度减去两边padding
+                const availableWidth = window.innerWidth - (minPadding * 2);
+                return Math.min(availableWidth, window.innerHeight * 0.35); // 限制最大高度
+            } else {
+                // 桌面端：考虑两个字的宽度和间距
+                const availableWidth = window.innerWidth - (minPadding * 2);
+                const maxCharWidth = (availableWidth - gap) / 2;
+                // 同时考虑高度限制
+                const maxHeightBasedSize = window.innerHeight * 0.4;
+                return Math.min(maxCharWidth, maxHeightBasedSize);
+            }
+        }
+
+        const charSize = calculateCharSize();
+        
+        const commonOptions = {
+            width: charSize,
+            height: charSize,
+            padding: charSize * 0.1,
+            strokeColor: '#333',
+            radicalColor: '#333'
+        };
+
+        const animationOptions = {
+            ...commonOptions,
+            strokeAnimationSpeed: 2,
+            delayBetweenStrokes: 100,
+        };
+
+        const quizOptions = {
+            ...commonOptions,
+            showCharacter: false,
+            showOutline: false,
+            showHintAfterMisses: 3,
+            highlightOnComplete: false
+        };
+
+        let completedChars = 0;
+        const messageElement = document.getElementById('message');
+
+        function startQuizMode() {
+            document.getElementById('mi').innerHTML = '';
+            document.getElementById('jia').innerHTML = '';
+            
+            messageElement.textContent = '现在轮到你写了';
+
+            let miWriter = HanziWriter.create('mi', '迷', quizOptions);
+            let jiaWriter = HanziWriter.create('jia', '家', quizOptions);
+
+            const quizCallbacks = {
+                onComplete: function(summaryData) {
+                    completedChars++;
+                    if (completedChars === 2) {
+                        messageElement.textContent = '你已经会写「迷家」两个字了';
+                        miWriter.showCharacter();
+                        jiaWriter.showCharacter();
+                    }
+                }
+            };
+
+            miWriter.quiz(quizCallbacks);
+            jiaWriter.quiz(quizCallbacks);
+        }
+
+        function chainAnimations() {
+            const delayBetweenAnimations = 500;
+
+            let miWriter = HanziWriter.create('mi', '迷', animationOptions);
+            let jiaWriter = HanziWriter.create('jia', '家', animationOptions);
+
+            miWriter.hideCharacter();
+            jiaWriter.hideCharacter();
+
+            miWriter.animateCharacter({
+                onComplete: function() {
+                    setTimeout(function() {
+                        jiaWriter.animateCharacter({
+                            onComplete: function() {
+                                setTimeout(startQuizMode, 1000);
+                            }
+                        });
+                    }, delayBetweenAnimations);
+                }
+            });
+        }
+
+        // 监听窗口大小变化，重新计算尺寸
+        window.addEventListener('resize', () => {
+            const newCharSize = calculateCharSize();
+            // 如果尺寸变化超过 10%，则重新加载页面
+            if (Math.abs(newCharSize - charSize) / charSize > 0.1) {
+                location.reload();
+            }
+        });
+
+        setTimeout(chainAnimations, 2000);
+    </script>
+</body>
+</html>
