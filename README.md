@@ -1,2 +1,18 @@
 # writing-display
-A web page showcasing the writing process of the Chinese characters for 「迷家」
+
+一个展示「迷家」汉字书写过程的网页应用。
+
+## 在线演示
+
+访问 [Live Demo](https://mijia.closeai.moe) 查看效果。
+
+## 项目说明
+
+本项目通过网页动态展示「迷家」两个汉字的书写过程，帮助用户理解汉字的笔画顺序和结构。
+
+## 功能特点
+
+- 动态展示汉字书写过程
+- 清晰的笔画演示
+- 优雅的动画效果
+- 响应式设计，支持各种设备
